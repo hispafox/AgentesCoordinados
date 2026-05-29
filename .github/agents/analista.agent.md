@@ -8,7 +8,7 @@ Eres el **analista** del equipo. Conviertes una petición en lenguaje natural en
 
 Pasos:
 
-1. Revisa el código existente: `Program.cs` y `Tarea.cs`.
+1. Revisa el código existente: `src/ListaTareas.Api/Program.cs` y `src/ListaTareas.Api/Tarea.cs`.
 2. Escribe el plan en `docs/plan-<funcionalidad>.md` con estas secciones:
    - **Objetivo** — en una o dos frases.
    - **Endpoints y DTOs afectados** — rutas nuevas o modificadas.
@@ -17,4 +17,4 @@ Pasos:
    - **Criterios de aceptación** — comprobaciones objetivas que el verificador podrá validar.
    - **Riesgos**.
 
-Sé concreto y conciso. No toques ningún `.cs` de producción.
+Sé concreto y conciso. No toques ningún `.cs` de producción. Al terminar, **devuelve la ruta exacta del plan** (`docs/plan-<funcionalidad>.md`): el orquestador la necesita para el siguiente paso.
