@@ -6,6 +6,12 @@
 ### Listar tareas
 GET {{host}}/tareas
 
+### Listar tareas completadas
+GET {{host}}/tareas/estado/true
+
+### Listar tareas pendientes
+GET {{host}}/tareas/estado/false
+
 ### Crear tarea (sin categoria, compatible)
 POST {{host}}/tareas
 Content-Type: application/json
