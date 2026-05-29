@@ -9,9 +9,12 @@ public sealed class Tarea
     public required string Titulo { get; set; }
     public bool Completada { get; set; }
     public Guid? CategoriaId { get; set; }
-    public Guid? UsuarioId { get; set; }
+    public List<Guid> AsignadosIds { get; set; } = [];
     public DateTimeOffset CreadaEn { get; init; } = DateTimeOffset.UtcNow;
 }
+
+public enum AgregarAsignadoResultado { Ok, TareaNoEncontrada, UsuarioNoEncontrado, YaAsignado }
+public enum QuitarAsignadoResultado { Ok, TareaNoEncontrada, AsignadoNoEncontrado }
 
 /// <summary>Una categoria de tareas.</summary>
 public sealed class Categoria
@@ -48,29 +51,55 @@ public sealed class AlmacenTareas
 
     public void Agregar(Tarea tarea) => _tareas[tarea.Id] = tarea;
 
-    public bool Actualizar(Guid id, string titulo, bool completada, Guid? categoriaId, Guid? usuarioId)
+    public bool Actualizar(Guid id, string titulo, bool completada, Guid? categoriaId, IReadOnlyList<Guid> asignadosIds)
     {
-        if (_tareas.TryGetValue(id, out var tarea))
+        if (!_tareas.TryGetValue(id, out var tarea))
+            return false;
+
+        foreach (var uid in asignadosIds)
         {
-            tarea.Titulo = titulo;
-            tarea.Completada = completada;
-            tarea.CategoriaId = categoriaId;
-            tarea.UsuarioId = usuarioId;
-            return true;
+            if (!ExisteUsuario(uid))
+                return false;
         }
-        return false;
+
+        tarea.Titulo = titulo;
+        tarea.Completada = completada;
+        tarea.CategoriaId = categoriaId;
+        tarea.AsignadosIds = new List<Guid>(asignadosIds);
+        return true;
     }
 
-    public bool AsignarUsuario(Guid tareaId, Guid? usuarioId)
+    public AgregarAsignadoResultado AgregarAsignado(Guid tareaId, Guid usuarioId)
     {
         if (!_tareas.TryGetValue(tareaId, out var tarea))
-            return false;
+            return AgregarAsignadoResultado.TareaNoEncontrada;
 
-        if (usuarioId.HasValue && !ExisteUsuario(usuarioId.Value))
-            return false;
+        if (!ExisteUsuario(usuarioId))
+            return AgregarAsignadoResultado.UsuarioNoEncontrado;
 
-        tarea.UsuarioId = usuarioId;
-        return true;
+        lock (tarea)
+        {
+            if (tarea.AsignadosIds.Contains(usuarioId))
+                return AgregarAsignadoResultado.YaAsignado;
+
+            tarea.AsignadosIds.Add(usuarioId);
+        }
+
+        return AgregarAsignadoResultado.Ok;
+    }
+
+    public QuitarAsignadoResultado QuitarAsignado(Guid tareaId, Guid usuarioId)
+    {
+        if (!_tareas.TryGetValue(tareaId, out var tarea))
+            return QuitarAsignadoResultado.TareaNoEncontrada;
+
+        lock (tarea)
+        {
+            if (!tarea.AsignadosIds.Remove(usuarioId))
+                return QuitarAsignadoResultado.AsignadoNoEncontrado;
+        }
+
+        return QuitarAsignadoResultado.Ok;
     }
 
     public bool Completar(Guid id)
@@ -170,9 +199,9 @@ public sealed class AlmacenTareas
         if (!_usuarios.TryRemove(id, out _))
             return false;
 
-        foreach (var tarea in _tareas.Values.Where(t => t.UsuarioId == id))
+        foreach (var tarea in _tareas.Values)
         {
-            tarea.UsuarioId = null;
+            tarea.AsignadosIds.Remove(id);
         }
 
         return true;

@@ -32,10 +32,14 @@ tareas.MapPost("/", (CrearTareaDto dto, AlmacenTareas almacen) =>
     if (dto.CategoriaId is Guid categoriaId && !almacen.ExisteCategoria(categoriaId))
         return Results.BadRequest("La categoría indicada no existe.");
 
-    if (dto.UsuarioId is Guid usuarioId && !almacen.ExisteUsuario(usuarioId))
-        return Results.BadRequest("El usuario indicado no existe.");
+    var asignadosIds = dto.AsignadosIds ?? [];
+    foreach (var uid in asignadosIds)
+    {
+        if (!almacen.ExisteUsuario(uid))
+            return Results.BadRequest($"El usuario {uid} no existe.");
+    }
 
-    var tarea = new Tarea { Titulo = dto.Titulo, CategoriaId = dto.CategoriaId, UsuarioId = dto.UsuarioId };
+    var tarea = new Tarea { Titulo = dto.Titulo, CategoriaId = dto.CategoriaId, AsignadosIds = new List<Guid>(asignadosIds) };
     almacen.Agregar(tarea);
     return Results.Created($"/tareas/{tarea.Id}", tarea);
 });
@@ -49,30 +53,42 @@ tareas.MapPut("/{id:guid}", (Guid id, ActualizarTareaDto dto, AlmacenTareas alma
     if (dto.CategoriaId is Guid categoriaId && !almacen.ExisteCategoria(categoriaId))
         return Results.BadRequest("La categoría indicada no existe.");
 
-    if (dto.UsuarioId is Guid usuarioId && !almacen.ExisteUsuario(usuarioId))
-        return Results.BadRequest("El usuario indicado no existe.");
+    var asignadosIds = dto.AsignadosIds ?? [];
+    var uniqueIds = asignadosIds.Distinct().ToList();
+    if (uniqueIds.Count != asignadosIds.Count)
+        return Results.BadRequest("La lista de asignados contiene identificadores duplicados.");
 
-    return almacen.Actualizar(id, dto.Titulo, dto.Completada, dto.CategoriaId, dto.UsuarioId)
+    foreach (var uid in uniqueIds)
+    {
+        if (!almacen.ExisteUsuario(uid))
+            return Results.BadRequest($"El usuario {uid} no existe.");
+    }
+
+    return almacen.Actualizar(id, dto.Titulo, dto.Completada, dto.CategoriaId, uniqueIds)
         ? Results.NoContent()
         : Results.NotFound();
 });
 
-// Asignar usuario a tarea
-tareas.MapPut("/{id:guid}/usuario", (Guid id, AsignarUsuarioDto dto, AlmacenTareas almacen) =>
-{
-    if (almacen.Obtener(id) is null)
-        return Results.NotFound("La tarea indicada no existe.");
+// Añadir asignado a una tarea
+tareas.MapPost("/{id:guid}/asignados", (Guid id, AgregarAsignadoDto dto, AlmacenTareas almacen) =>
+    almacen.AgregarAsignado(id, dto.UsuarioId) switch
+    {
+        AgregarAsignadoResultado.Ok => Results.NoContent(),
+        AgregarAsignadoResultado.TareaNoEncontrada => Results.NotFound("La tarea indicada no existe."),
+        AgregarAsignadoResultado.UsuarioNoEncontrado => Results.NotFound("El usuario indicado no existe."),
+        AgregarAsignadoResultado.YaAsignado => Results.BadRequest("El usuario ya está asignado a esta tarea."),
+        _ => Results.StatusCode(500)
+    });
 
-    if (!almacen.ExisteUsuario(dto.UsuarioId))
-        return Results.NotFound("El usuario indicado no existe.");
-
-    _ = almacen.AsignarUsuario(id, dto.UsuarioId);
-    return Results.NoContent();
-});
-
-// Desasignar usuario de tarea
-tareas.MapDelete("/{id:guid}/usuario", (Guid id, AlmacenTareas almacen) =>
-    almacen.AsignarUsuario(id, null) ? Results.NoContent() : Results.NotFound());
+// Quitar asignado de una tarea
+tareas.MapDelete("/{id:guid}/asignados/{usuarioId:guid}", (Guid id, Guid usuarioId, AlmacenTareas almacen) =>
+    almacen.QuitarAsignado(id, usuarioId) switch
+    {
+        QuitarAsignadoResultado.Ok => Results.NoContent(),
+        QuitarAsignadoResultado.TareaNoEncontrada => Results.NotFound("La tarea indicada no existe."),
+        QuitarAsignadoResultado.AsignadoNoEncontrado => Results.NotFound("El usuario no estaba asignado a esta tarea."),
+        _ => Results.StatusCode(500)
+    });
 
 // Marcar como completada
 tareas.MapPost("/{id:guid}/completar", (Guid id, AlmacenTareas almacen) =>
@@ -171,10 +187,10 @@ usuarios.MapDelete("/{id:guid}", (Guid id, AlmacenTareas almacen) =>
 app.Run();
 
 // DTOs de entrada
-public sealed record CrearTareaDto(string Titulo, Guid? CategoriaId = null, Guid? UsuarioId = null);
-public sealed record ActualizarTareaDto(string Titulo, bool Completada, Guid? CategoriaId = null, Guid? UsuarioId = null);
+public sealed record CrearTareaDto(string Titulo, Guid? CategoriaId = null, IReadOnlyList<Guid>? AsignadosIds = null);
+public sealed record ActualizarTareaDto(string Titulo, bool Completada, Guid? CategoriaId = null, IReadOnlyList<Guid>? AsignadosIds = null);
+public sealed record AgregarAsignadoDto(Guid UsuarioId);
 public sealed record CrearCategoriaDto(string Nombre);
 public sealed record ActualizarCategoriaDto(string Nombre);
 public sealed record CrearUsuarioDto(string Nombre, string Email);
 public sealed record ActualizarUsuarioDto(string Nombre, string Email);
-public sealed record AsignarUsuarioDto(Guid UsuarioId);
