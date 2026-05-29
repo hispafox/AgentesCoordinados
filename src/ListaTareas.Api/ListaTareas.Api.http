@@ -23,48 +23,49 @@ Content-Type: application/json
   "categoriaId": "{{categoriaId}}"
 }
 
-### Crear tarea con usuario
+### Crear tarea con asignados
 POST {{host}}/tareas
 Content-Type: application/json
 
 {
   "titulo": "Revisar backlog",
-  "usuarioId": "{{usuarioId}}"
+  "asignadosIds": ["{{usuarioId}}"]
 }
 
 ### Obtener una tarea (cambia el GUID)
 GET {{host}}/tareas/{{tareaId}}
 
-### Actualizar tarea
+### Actualizar tarea con asignados
 PUT {{host}}/tareas/{{tareaId}}
 Content-Type: application/json
 
 {
   "titulo": "Comprar pan y leche",
   "completada": false,
-  "categoriaId": "{{categoriaId}}"
+  "categoriaId": "{{categoriaId}}",
+  "asignadosIds": ["{{usuarioId}}"]
 }
 
-### Desasignar categoria de una tarea
+### Actualizar tarea sin asignados (vaciar lista)
 PUT {{host}}/tareas/{{tareaId}}
 Content-Type: application/json
 
 {
   "titulo": "Comprar pan y leche",
   "completada": false,
-  "categoriaId": null
+  "asignadosIds": []
 }
 
-### Asignar usuario a una tarea
-PUT {{host}}/tareas/{{tareaId}}/usuario
+### Añadir asignado a una tarea
+POST {{host}}/tareas/{{tareaId}}/asignados
 Content-Type: application/json
 
 {
   "usuarioId": "{{usuarioId}}"
 }
 
-### Desasignar usuario de una tarea
-DELETE {{host}}/tareas/{{tareaId}}/usuario
+### Quitar asignado de una tarea
+DELETE {{host}}/tareas/{{tareaId}}/asignados/{{usuarioId}}
 
 ### Completar tarea
 POST {{host}}/tareas/{{tareaId}}/completar
