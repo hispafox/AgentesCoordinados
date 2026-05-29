@@ -107,6 +107,25 @@ sequenceDiagram
 
 El detalle que más se agradece: el commit lleva `closes #N`. Eso significa que cuando alguien fusione el PR, GitHub cierra el issue solo. No tienes que acordarte de nada. La trazabilidad — qué se pidió, qué se planeó, qué se cambió — queda cosida sin esfuerzo.
 
+### Los 8 pasos en texto (por si el diagrama no te renderiza)
+
+Si tu visor no pinta el diagrama de arriba, aquí tienes lo mismo en plano. Cada paso, con el comando real que lanza el orquestador:
+
+| # | Paso | Quién | Comando / acción |
+|---|------|-------|------------------|
+| 1 | **Crear el issue** | Orquestador | `gh issue create --title … --body …` → guarda el `#N` |
+| 2 | **Crear la rama** | Orquestador | `git switch main` → `git pull --ff-only` → `git switch -c feature/<slug>` |
+| 3 | **Planificar** | Analista | escribe `docs/plan-<slug>.md` y devuelve su ruta |
+| 4 | **Implementar** | Desarrollador | edita el código según el plan + `dotnet build` |
+| 5 | **Verificar** | Verificador | `dotnet build` + criterios → `APROBADO` / `REVISAR` (bucle, máx. 3) |
+| 6 | **Commit + push** | Orquestador | `git commit -m "feat: … (closes #N)"` → `git push -u origin feature/<slug>` |
+| 7 | **Abrir el PR** | Orquestador | `gh pr create --base main --head feature/<slug> --body "Closes #N …"` |
+| 8 | **Resumen** | Orquestador | enlaces del **issue** y del **PR**, ficheros y veredicto |
+
+Las tres acciones de GitHub — **issue** (paso 1), **rama** (paso 2) y **Pull Request** (paso 7) — las hace siempre el orquestador con `gh`/`git`. Los subagentes no tocan nada de eso.
+
+> **Ejemplo real ya ejecutado:** issue [#1](https://github.com/hispafox/AgentesCoordinados/issues/1) → rama `feature/filtro-estado` → PR [#2](https://github.com/hispafox/AgentesCoordinados/pull/2).
+
 ---
 
 ## 5. El bucle de verificación (donde está la gracia)
