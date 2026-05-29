@@ -1,0 +1,125 @@
+@host = http://localhost:5080
+@tareaId = 00000000-0000-0000-0000-000000000000
+@categoriaId = 00000000-0000-0000-0000-000000000000
+@usuarioId = 00000000-0000-0000-0000-000000000000
+
+### Listar tareas
+GET {{host}}/tareas
+
+### Crear tarea (sin categoria, compatible)
+POST {{host}}/tareas
+Content-Type: application/json
+
+{
+  "titulo": "Comprar pan"
+}
+
+### Crear tarea con categoria
+POST {{host}}/tareas
+Content-Type: application/json
+
+{
+  "titulo": "Preparar informe semanal",
+  "categoriaId": "{{categoriaId}}"
+}
+
+### Crear tarea con usuario
+POST {{host}}/tareas
+Content-Type: application/json
+
+{
+  "titulo": "Revisar backlog",
+  "usuarioId": "{{usuarioId}}"
+}
+
+### Obtener una tarea (cambia el GUID)
+GET {{host}}/tareas/{{tareaId}}
+
+### Actualizar tarea
+PUT {{host}}/tareas/{{tareaId}}
+Content-Type: application/json
+
+{
+  "titulo": "Comprar pan y leche",
+  "completada": false,
+  "categoriaId": "{{categoriaId}}"
+}
+
+### Desasignar categoria de una tarea
+PUT {{host}}/tareas/{{tareaId}}
+Content-Type: application/json
+
+{
+  "titulo": "Comprar pan y leche",
+  "completada": false,
+  "categoriaId": null
+}
+
+### Asignar usuario a una tarea
+PUT {{host}}/tareas/{{tareaId}}/usuario
+Content-Type: application/json
+
+{
+  "usuarioId": "{{usuarioId}}"
+}
+
+### Desasignar usuario de una tarea
+DELETE {{host}}/tareas/{{tareaId}}/usuario
+
+### Completar tarea
+POST {{host}}/tareas/{{tareaId}}/completar
+
+### Borrar tarea
+DELETE {{host}}/tareas/{{tareaId}}
+
+### Listar categorias
+GET {{host}}/categorias
+
+### Crear categoria
+POST {{host}}/categorias
+Content-Type: application/json
+
+{
+  "nombre": "Trabajo"
+}
+
+### Obtener una categoria (cambia el GUID)
+GET {{host}}/categorias/{{categoriaId}}
+
+### Renombrar categoria
+PUT {{host}}/categorias/{{categoriaId}}
+Content-Type: application/json
+
+{
+  "nombre": "Trabajo urgente"
+}
+
+### Borrar categoria
+DELETE {{host}}/categorias/{{categoriaId}}
+
+### Listar usuarios
+GET {{host}}/usuarios
+
+### Crear usuario
+POST {{host}}/usuarios
+Content-Type: application/json
+
+{
+  "nombre": "Ana Gomez",
+  "email": "ana.gomez@empresa.com"
+}
+
+### Obtener un usuario (cambia el GUID)
+GET {{host}}/usuarios/{{usuarioId}}
+
+### Actualizar usuario
+PUT {{host}}/usuarios/{{usuarioId}}
+Content-Type: application/json
+
+{
+  "nombre": "Ana G.",
+  "email": "ana.g@empresa.com"
+}
+
+### Borrar usuario
+DELETE {{host}}/usuarios/{{usuarioId}}
