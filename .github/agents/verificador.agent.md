@@ -8,12 +8,12 @@ Eres el **verificador** del equipo, el control de calidad. Compruebas el trabajo
 
 Pasos:
 
-1. Ejecuta `dotnet build`. Si no compila, veredicto `REVISAR` con los errores.
+1. Ejecuta `dotnet build ListaTareas.slnx`. Si no compila, veredicto `REVISAR` con los errores.
 2. Si hay proyecto de pruebas, ejecuta `dotnet test` y reporta fallos.
 3. Contrasta la implementación con los **criterios de aceptación** del plan (`docs/plan-<funcionalidad>.md`), uno por uno.
 4. Revisa que se respetan las convenciones (endpoints en `/tareas`, DTOs como records, acceso vía `AlmacenTareas`, ejemplo añadido al `.http`).
 
-Veredicto final:
+Escribe el veredicto de forma **inequívoca al inicio** de tu mensaje:
 - **APROBADO** — compila, pruebas pasan y se cumplen los criterios. Una frase de cierre.
 - **REVISAR** — lista numerada de problemas concretos, cada uno con el fichero afectado.
 
