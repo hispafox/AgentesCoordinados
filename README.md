@@ -24,6 +24,12 @@ Queda en `http://localhost:5080`. Prueba los endpoints desde `ListaTareas.Api.ht
 
 En Development, la spec OpenAPI está en `/openapi/v1.json`.
 
+## Equipo de agentes (Claude Code)
+
+Las ampliaciones se hacen con un equipo de agentes coordinados vía el comando
+`/orquestar`. Ver [`docs/ARQUITECTURA-AGENTES.md`](docs/ARQUITECTURA-AGENTES.md)
+(con diagramas Mermaid del flujo completo issue → PR).
+
 ## Estructura
 
 ```
