@@ -43,6 +43,12 @@ public sealed class AlmacenTareas
     public IReadOnlyCollection<Tarea> Listar() =>
         _tareas.Values.OrderByDescending(t => t.CreadaEn).ToList();
 
+    public IReadOnlyCollection<Tarea> ListarPorEstado(bool completada) =>
+        _tareas.Values
+            .Where(t => t.Completada == completada)
+            .OrderByDescending(t => t.CreadaEn)
+            .ToList();
+
     public Tarea? Obtener(Guid id) => _tareas.GetValueOrDefault(id);
 
     public bool ExisteCategoria(Guid id) => _categorias.ContainsKey(id);

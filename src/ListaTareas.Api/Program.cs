@@ -19,6 +19,10 @@ var usuarios = app.MapGroup("/usuarios");
 // Listar todas
 tareas.MapGet("/", (AlmacenTareas almacen) => Results.Ok(almacen.Listar()));
 
+// Listar por estado (completadas / pendientes)
+tareas.MapGet("/estado/{completada:bool}", (bool completada, AlmacenTareas almacen) =>
+    Results.Ok(almacen.ListarPorEstado(completada)));
+
 // Obtener una
 tareas.MapGet("/{id:guid}", (Guid id, AlmacenTareas almacen) =>
     almacen.Obtener(id) is { } tarea ? Results.Ok(tarea) : Results.NotFound());
